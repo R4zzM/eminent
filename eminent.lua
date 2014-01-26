@@ -36,7 +36,6 @@ local getscreen = capi.tag.getscreen
 -- Eminent: Effortless wmii-style dynamic tagging
 local eminent = {}
 
-
 -- Grab the original functions we're replacing
 local deflayout = nil
 local orig = {
@@ -54,7 +53,11 @@ function gettags(screen)
 
     --for k, t in ipairs(capi.screen[screen]:tags()) do
     for k, t in ipairs(awful.tag.gettags(screen)) do
-        if t.selected or #t:clients() > 0 then
+        
+        -- The first tag should always be visible but aside from that 
+        -- only tags that are selected or that have
+        -- associated clients should show up
+        if k == 1 or t.selected or #t:clients() > 0 then
             awful.tag.setproperty(t, "hide", false)
             table.insert(tags, t)
         else
@@ -106,9 +109,20 @@ end
 -- end
 
 -- Taglist label functions
---awful.widget.taglist.label.all = function (t, args)
 awful.widget.taglist.filter.all = function (t, args)
-    if t.selected or #t:clients() > 0 then
+    -- The first tag should always be visible
+    tagidx = awful.tag.getidx(t)
+    if tagidx == 1 then 
+        return orig.label(t, args)
+    end
+
+    -- Tags that are selected should be visible
+    if t.selected then
+        return orig.label(t, args)
+    end
+
+    -- Tags that have clients associated with them should be visible
+    if #t:clients() > 0 then
         return orig.label(t, args)
     end
 end
